@@ -1,22 +1,25 @@
-version: "3.7"
+version: "3.9"
+
 services:
   db:
-    image: postgres:latest
+    image: postgres:13
+    container_name: fit-db
+    restart: always
+    environment:
+      POSTGRES_USER: fituser
+      POSTGRES_PASSWORD: fitpass
+      POSTGRES_DB: fitdb
     ports:
       - "5432:5432"
-    command: postgres -c max_connections=200
-    user: postgres
-    environment:
-      - POSTGRES_DB=fit-db
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=docker
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready", "-d", "fit-db"]
-      interval: 5s
-      timeout: 30s
-      retries: 5
-    networks:
-      - fit
 
-networks:
-  fit:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: fit-monolith
+    depends_on:
+      - db
+    environment:
+      DATABASE_URL: postgresql://fituser:fitpass@db:5432/fitdb
+    ports:
+      - "5001:5000"

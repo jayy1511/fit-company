@@ -3,6 +3,10 @@ from ..models_db import ExerciseModel, MuscleGroupModel, exercise_muscle_groups
 from ..database import db_session
 import random
 from time import time
+from datetime import date, timedelta
+from src.fit.models_db import ExerciseModel, UserExerciseHistoryModel
+from src.fit.database import db_session
+import random
 
 def heavy_computation(duration_seconds: int = 3):
     """
@@ -25,43 +29,35 @@ def calculate_intensity(difficulty: int) -> float:
     # Convert difficulty (1-5) to intensity (0.0-1.0)
     return (difficulty - 1) / 4.0
 
-def request_wod() -> List[Tuple[ExerciseModel, List[Tuple[MuscleGroupModel, bool]]]]:
-    """
-    Request a workout of the day (WOD).
-    Returns a list of tuples containing:
-    - The exercise
-    - A list of tuples containing:
-      - The muscle group
-      - Whether it's a primary muscle group
-    """
-    # Simulate heavy computation (AI model processing, complex calculations, etc.) for 1-5 seconds
-    heavy_computation(random.randint(1, 5)) # DO NOT REMOVE THIS LINE
-    
+def request_wod(user_email: str = None):
     db = db_session()
+
     try:
-        # Get all exercises with their muscle groups
-        exercises = db.query(ExerciseModel).all()
-        
-        # Select 6 random exercises
-        selected_exercises = random.sample(exercises, 6) if len(exercises) >= 6 else exercises
-        
-        # For each exercise, get its muscle groups and whether they are primary
-        result = []
-        for exercise in selected_exercises:
-            # Get the junction table information for this exercise
-            stmt = db.query(
-                MuscleGroupModel,
-                exercise_muscle_groups.c.is_primary
-            ).join(
-                exercise_muscle_groups,
-                MuscleGroupModel.id == exercise_muscle_groups.c.muscle_group_id
-            ).filter(
-                exercise_muscle_groups.c.exercise_id == exercise.id
+        query = db.query(ExerciseModel)
+
+        # 👇 If user_email is provided, fetch yesterday’s exercises
+        if user_email:
+            yesterday = date.today() - timedelta(days=1)
+            subquery = db.query(UserExerciseHistoryModel.exercise_id).filter(
+                UserExerciseHistoryModel.user_email == user_email,
+                UserExerciseHistoryModel.date_assigned == yesterday
             )
-            
-            muscle_groups = [(mg, is_primary) for mg, is_primary in stmt.all()]
-            result.append((exercise, muscle_groups))
-            
+            excluded_ids = [row.exercise_id for row in subquery]
+            if excluded_ids:
+                query = query.filter(~ExerciseModel.id.in_(excluded_ids))
+
+        exercises = query.all()
+        selected = random.sample(exercises, min(len(exercises), 5))  # Pick 5 random
+
+        result = []
+        for ex in selected:
+            muscle_groups = []
+            for mg in ex.muscle_groups:
+                is_primary = True  # placeholder logic
+                muscle_groups.append((mg, is_primary))
+            result.append((ex, muscle_groups))
+
         return result
+
     finally:
-        db.close() 
+        db.close()

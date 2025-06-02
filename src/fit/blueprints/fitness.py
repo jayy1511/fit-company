@@ -36,7 +36,7 @@ def get_exercise(exercise_id):
 @jwt_required
 def get_wod():
     try:
-        exercises_with_muscles = request_wod()
+        exercises_with_muscles = request_wod(user_email=g.user_email)
         wod_exercises = []
         for exercise, muscle_groups in exercises_with_muscles:
             muscle_impacts = [

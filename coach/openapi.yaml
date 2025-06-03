@@ -1,0 +1,65 @@
+openapi: 3.0.3
+info:
+  title: Coach Microservice API
+  version: 1.0.0
+  description: API for generating Workouts of the Day (WOD) excluding yesterday’s exercises.
+
+paths:
+  /generate_wod:
+    get:
+      summary: Generate Workout of the Day
+      description: Returns a list of exercises excluding those assigned yesterday.
+      parameters:
+        - in: query
+          name: user_email
+          schema:
+            type: string
+          required: true
+          description: Email of the user requesting a WOD
+      responses:
+        '200':
+          description: A WOD successfully generated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  exercises:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: integer
+                        name:
+                          type: string
+                        description:
+                          type: string
+                        difficulty:
+                          type: integer
+                        suggested_weight:
+                          type: number
+                        suggested_reps:
+                          type: integer
+                        muscle_groups:
+                          type: array
+                          items:
+                            type: object
+                            properties:
+                              id:
+                                type: integer
+                              name:
+                                type: string
+                              body_part:
+                                type: string
+                              is_primary:
+                                type: boolean
+                              intensity:
+                                type: number
+                  generated_at:
+                    type: string
+                    format: date-time
+        '400':
+          description: Missing or invalid user_email
+        '500':
+          description: Internal server error

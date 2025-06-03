@@ -1,0 +1,115 @@
+openapi: 3.0.3
+info:
+  title: Fit Company Monolith API
+  version: 1.0.0
+  description: REST API for the Fit Company Monolith Application.
+
+paths:
+  /health:
+    get:
+      summary: Health Check
+      responses:
+        '200':
+          description: Service is up
+
+  /oauth/token:
+    post:
+      summary: Authenticate user
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                password:
+                  type: string
+      responses:
+        '200':
+          description: Access token
+        '401':
+          description: Invalid credentials
+
+  /bootstrap/admin:
+    post:
+      summary: Create initial admin user
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                password:
+                  type: string
+                name:
+                  type: string
+      responses:
+        '201':
+          description: Admin created
+
+  /users:
+    post:
+      summary: Create user (admin only)
+      responses:
+        '201':
+          description: User created
+    get:
+      summary: Get all users (admin only)
+      responses:
+        '200':
+          description: List of users
+
+  /profile:
+    get:
+      summary: Get user profile
+      responses:
+        '200':
+          description: Profile object
+  /profile/onboarding:
+    post:
+      summary: Set onboarding profile data
+      responses:
+        '200':
+          description: Profile updated
+
+  /fitness/exercises:
+    get:
+      summary: Get all or filtered exercises
+      parameters:
+        - in: query
+          name: muscle_group_id
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: List of exercises
+
+  /fitness/exercises/{exercise_id}:
+    get:
+      summary: Get specific exercise
+      parameters:
+        - in: path
+          name: exercise_id
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Exercise detail
+
+  /fitness/wod:
+    get:
+      summary: Generate WOD (delegated to coach service)
+      responses:
+        '200':
+          description: WOD generated
+
+  /history:
+    get:
+      summary: Get user exercise history
+      responses:
+        '200':
+          description: Exercise history list

@@ -15,7 +15,8 @@ RUN apt-get update && apt-get install -y build-essential libpq-dev
 COPY . .
 
 # Install Python dependencies manually
-RUN pip install --no-cache-dir flask pydantic sqlalchemy psycopg2-binary pyjwt
+RUN pip install --no-cache-dir flask pydantic sqlalchemy psycopg2-binary pyjwt requests fastapi uvicorn
+
 
 # Expose port (if needed for testing)
 EXPOSE 5000

@@ -3,6 +3,16 @@ import pika
 import json
 from typing import Dict, Any
 
+def validate_message_format(message: Dict[str, Any]) -> bool:
+    return (
+        isinstance(message, dict)
+        and "email" in message
+        and isinstance(message["email"], str)
+        and "date" in message
+        and isinstance(message["date"], str)
+    )
+
+
 class RabbitMQService:
     def __init__(self):
         self.connection = None
@@ -29,7 +39,7 @@ class RabbitMQService:
         # Declare the main queue with message TTL of 10 minutes (600000 ms)
         # and max length of 100 messages
         arguments = {
-            "x-message-ttl": 600000,  # 10 minutes
+            "x-message-ttl": 60000,  # 1 minutes
             "x-max-length": 100,
             "x-dead-letter-exchange": "dlx",  # Dead Letter Exchange
             "x-dead-letter-routing-key": f"{self.queue_name}-dead"

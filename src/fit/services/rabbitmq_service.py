@@ -12,7 +12,6 @@ def validate_message_format(message: Dict[str, Any]) -> bool:
         and isinstance(message["date"], str)
     )
 
-
 class RabbitMQService:
     def __init__(self):
         self.connection = None
@@ -36,16 +35,13 @@ class RabbitMQService:
         self.connection = pika.BlockingConnection(parameters)
         self.channel = self.connection.channel()
 
-        # Declare the main queue with message TTL of 10 minutes (600000 ms)
-        # and max length of 100 messages
         arguments = {
-            "x-message-ttl": 60000,  # 1 minutes
+            "x-message-ttl": 60000,  # 1 minute
             "x-max-length": 100,
-            "x-dead-letter-exchange": "dlx",  # Dead Letter Exchange
+            "x-dead-letter-exchange": "dlx",
             "x-dead-letter-routing-key": f"{self.queue_name}-dead"
         }
-        
-        # Declare the Dead Letter Exchange and Queue
+
         self.channel.exchange_declare(exchange="dlx", exchange_type="direct")
         self.channel.queue_declare(queue=f"{self.queue_name}-dead", durable=True)
         self.channel.queue_bind(
@@ -54,7 +50,6 @@ class RabbitMQService:
             routing_key=f"{self.queue_name}-dead"
         )
 
-        # Declare the main queue
         self.channel.queue_declare(
             queue=self.queue_name,
             durable=True,
@@ -64,6 +59,10 @@ class RabbitMQService:
     def publish_message(self, message: Dict[str, Any]) -> bool:
         """Publish a message to the queue"""
         try:
+            if not validate_message_format(message):
+                print("Invalid message format:", message)
+                return False
+
             if not self.connection or self.connection.is_closed:
                 self.connect()
 
@@ -81,9 +80,14 @@ class RabbitMQService:
             return False
 
     def close(self):
-        """Close the connection"""
         if self.connection and not self.connection.is_closed:
             self.connection.close()
 
-# Create a singleton instance
-rabbitmq_service = RabbitMQService() 
+# Do not connect on import
+rabbitmq_service = None
+
+def get_rabbitmq_service():
+    global rabbitmq_service
+    if rabbitmq_service is None:
+        rabbitmq_service = RabbitMQService()
+    return rabbitmq_service

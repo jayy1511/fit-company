@@ -4,7 +4,7 @@ from ..models_dto import RegisterWorkoutSchema
 from ..services.workout_service import get_last_workout_exercises, register_workout
 from ..services.auth_service import api_key_required
 from ..services.user_service import get_all_users
-from ..services.rabbitmq_service import rabbitmq_service
+from ..services.rabbitmq_service import get_rabbitmq_service  # CHANGED
 from datetime import date
 
 workout_bp = Blueprint('workout', __name__)
@@ -40,7 +40,6 @@ def perform_workout():
     except Exception as e:
         return jsonify({"error": "Error registering workout", "details": str(e)}), 500
 
-# NEW ENDPOINT: Queue WOD generation for all users
 @workout_bp.route("/generateWods", methods=["POST"])
 @api_key_required
 def generate_wods():
@@ -53,7 +52,7 @@ def generate_wods():
                 "email": user.email,
                 "date": today
             }
-            rabbitmq_service.publish_message(message)
+            get_rabbitmq_service().publish_message(message)  # CHANGED
 
         return jsonify({"status": "queued", "count": len(users)}), 202
 

@@ -17,6 +17,7 @@ app.register_blueprint(user_bp, url_prefix='/')
 app.register_blueprint(auth_bp, url_prefix='/')
 app.register_blueprint(workout_bp, url_prefix='/workouts')
 
+
 BOOTSTRAP_KEY = os.environ.get("BOOTSTRAP_KEY", "bootstrap-secret-key")
 
 @app.route("/health")

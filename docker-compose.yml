@@ -131,6 +131,18 @@ services:
     networks:
       - fit
 
+  billing:
+    build:
+      context: .
+      dockerfile: billing.Dockerfile
+    ports:
+      - "5002:5000"
+    volumes:
+      - ./src/billing:/app
+    restart: always
+    networks:
+      - fit
+
 networks:
   fit:
 
